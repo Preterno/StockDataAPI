@@ -19,7 +19,7 @@ def require_api_key(func):
     return wrapper
 
 @app.route('/historical_data', methods=['GET'])
-@require_api_key 
+@require_api_key
 def get_historical_data():
     stock_symbols = request.args.get('stocks', '')
 
@@ -34,12 +34,13 @@ def get_historical_data():
             ticker = yf.Ticker(stock.strip())
             data = ticker.history(period='3mo')
 
-            historical_data[stock.strip()] = data[['Close']].to_dict()['Close']
-            historical_data[stock.strip()] = {str(date): value for date, value in historical_data[stock.strip()].items()}
-
+            historical_data[stock.strip()] = {
+                date.strftime('%Y-%m-%d'): value
+                for date, value in data['Close'].items()
+            }
         except Exception as e:
             historical_data[stock.strip()] = {"error": str(e)}
-
+        
     return jsonify(historical_data)
 
 if __name__ == '__main__':
